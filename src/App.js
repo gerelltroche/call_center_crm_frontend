@@ -1,52 +1,44 @@
 import './App.css';
 import {useState} from "react";
-import axios from 'axios'
+import Login from './components/Login'
+import Regions from "./components/Regions";
+import RequestRegion from "./components/RequestRegion";
+import AdminView from "./components/AdminView";
 
 function App() {
 
-    const [user, setUser] = useState('')
-    const [territories, setTerritories] = useState()
     const [isLoggedIn, setIsLoggedIn] = useState(false)
+    const [userToken, setUserToken] = useState()
+    const [isAdmin, setIsAdmin] = useState(false)
+    const [request, setRequest] = useState('idle')
+    const [currentView, setCurrentView] = useState('default')
 
-    const loginHandler = async (e) => {
-        e.preventDefault()
-        setIsLoggedIn(!isLoggedIn)
-        const username = await getUserHandler()
-        setUser(username)
+    // need to add a check to set the state of request (maybe save that on the usertoken)
+    // also checks if you're admin. All of this on login.
+
+    const AdminViewProps = {
+        isLoggedIn: isLoggedIn,
+        setIsLoggedIn: setIsLoggedIn,
+        userToken: userToken,
+        setUserToken: setUserToken,
+        setIsAdmin: setIsAdmin
     }
 
-    const getUserHandler = async (user) => {
-        try {
-            const User = await axios.get(`http://localhost:3000/api/users/`)
-            return User.data
-        } catch (err) {
-            console.log(`Error: ${err}`)
-        }
-    }
-
-    const getTerritoriesHandler = async (options) => {
-        try {
-            const Territories = await axios.get(`http://localhost:3000/api/territories/`)
-            setTerritories(territories)
-        } catch (err) {
-            console.log(`Error: ${err}`)
-        }
+    if (isAdmin) {
+        return (
+            <AdminView AdminViewProps={AdminViewProps} currentView={currentView} setCurrentView={setCurrentView}/>
+        )
     }
 
     return (
     <div className="App">
-      <header>
-      </header>
       <section>
-          <form onSubmit={(e) => loginHandler(e)}>
-              <input type='text' />
-              <button>Login</button>
-          </form>
-          <p>{isLoggedIn ? 'yes' : 'no'}</p>
-          { user ? user.map((user => {
-              return <h1>{user.name}</h1>
-          })) : ''
-          }
+          {isLoggedIn ? <h1>Welcome {userToken.name}</h1> : <h1>Please Login</h1>}
+          <Login LoginObj={{isLoggedIn: isLoggedIn, Login: setIsLoggedIn, setUserToken: setUserToken}}/>
+          <br />
+          {isLoggedIn ? <Regions user={userToken}/> : ''}
+          <hr />
+          {isLoggedIn ? <RequestRegion request={request} setRequest={setRequest}/> : ''}
       </section>
     </div>
     );
